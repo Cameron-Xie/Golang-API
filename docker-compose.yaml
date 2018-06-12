@@ -1,0 +1,18 @@
+version: '3'
+services:
+  golang:
+    container_name: acme_go
+    build:
+      context: ./docker/golang
+    volumes:
+      - './src:/go/src'
+    working_dir: '/go/src'
+    command: ['/bin/sh', '-c', 'tail -f /dev/null']
+    restart: always
+    networks:
+      - app
+    ports:
+      - ${WEB_IP}:${WEB_HTTP_PORT}:8080
+networks:
+  app:
+    driver: bridge
