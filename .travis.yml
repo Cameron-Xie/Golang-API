@@ -1,0 +1,21 @@
+sudo: required
+
+env:
+  - DOCKER_COMPOSE_VERSION=1.20.1
+
+services:
+  - docker
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+  - docker-compose --version
+
+before_script:
+  - sudo make ci-install
+  - while [ "$(docker ps -q -f name=acme_go)" ]; do sleep 5; done
+
+script:
+  - sudo make test

@@ -29,6 +29,10 @@ test:
 clean-test-cache:
 	@${DockerGo} go clean -testcache
 
+ci-install:
+	@make create-dev-env
+	@make install
+
 acceptance-test:
 	@${DockerGo} go test app/handler -v -cover
 
