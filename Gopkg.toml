@@ -1,0 +1,23 @@
+[[constraint]]
+  branch = "master"
+  name = "github.com/gavv/httpexpect"
+
+[[constraint]]
+  name = "github.com/gorilla/mux"
+  version = "1.6.2"
+
+[[constraint]]
+  name = "github.com/jinzhu/gorm"
+  version = "1.9.1"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+
+[[constraint]]
+  name = "github.com/asaskevich/govalidator"
+  version = "9.0.0"
+
+[[constraint]]
+  name = "gopkg.in/go-playground/validator.v9"
+  version = "9.20.2"

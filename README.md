@@ -6,8 +6,59 @@ A Golang API (Starter).
 
 **Stacks:**
 * Language: Golang 1.10+
-* Packages: gorilla/mux, gavv/httpexpect
 * Containerisation: Docker CE
+
+### Endpoints
+
+`GET /projects/`
+
+List all projects
+
+**Example:**
+
+```Golang
+curl --header "Content-Type: application/json" \
+  --request GET \
+  http://localhost:8080/projects/
+```
+
+`POST /projects/`
+
+Create new project
+
+**Example:**
+
+```Golang
+curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"name":"project name","description":"project description"}' \
+  http://localhost:8080/projects/
+```
+
+`PATCH /projects/{id} `
+
+Update project
+
+**Example:**
+
+```Golang
+curl --header "Content-Type: application/json" \
+  --request PATCH \
+  --data '{"name":"first project","description":"first project description"}' \
+  http://localhost:8080/projects/1
+```
+
+`DELETE /projects/{id} `
+
+Delete project
+
+**Example:**
+
+```Golang
+curl --header "Content-Type: application/json" \
+  --request DELETE \
+  http://localhost:8080/projects/1
+```
 
 ### Setup Development / Test Environment
 

@@ -1,8 +1,7 @@
-DockerGo=docker-compose run --rm --no-deps golang
+DockerGo=docker exec acme_go
 
 up:
 	@make create-dev-env
-	@make install
 	@make start-containers
 
 down:
@@ -18,13 +17,13 @@ create-dev-env:
 	@test -e .env || cp .env.example .env
 
 install:
-	@${DockerGo} go get -d -t -v ./...
+	@${DockerGo} dep ensure
+
+migrate:
+	@${DockerGo} go run cmd/migrate/main.go
 
 run:
-	@${DockerGo} go run *.go
-
-test:
-	@make acceptance-test
+	@${DockerGo} go run cmd/api/*.go
 
 clean-test-cache:
 	@${DockerGo} go clean -testcache

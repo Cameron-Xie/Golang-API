@@ -5,14 +5,37 @@ services:
     build:
       context: ./docker/golang
     volumes:
-      - './src:/go/src'
-    working_dir: '/go/src'
+    - '.:/go/src/go-api'
+    working_dir: '/go/src/go-api'
     command: ['/bin/sh', '-c', 'tail -f /dev/null']
     restart: always
+    env_file: .env
+    environment:
+    - DB_USER=${DB_USER}
+    - DB_PASSWORD=${DB_PASSWORD}
+    - WEB_HTTP_PORT=${WEB_HTTP_PORT}
     networks:
-      - app
+    - proxy
+    - app
     ports:
-      - ${WEB_IP}:${WEB_HTTP_PORT}:8080
+    - ${WEB_IP}:${WEB_HTTP_PORT}:8080
+    links:
+    - mysqldb
+  mysqldb:
+    container_name: acme_mysql
+    image: mysql:latest
+    volumes:
+    - './docker/mysql/initdb.sh:/docker-entrypoint-initdb.d/initdb.sh'
+    - './docker/mysql/content:/mysqldb/content'
+    restart: always
+    environment:
+    - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    networks:
+    - app
+    ports:
+    - 3306
 networks:
+  proxy:
+    driver: bridge
   app:
     driver: bridge
