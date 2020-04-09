@@ -1,41 +1,33 @@
-version: '3'
+version: '3.7'
 services:
   golang:
     container_name: acme_go
     build:
       context: ./docker/golang
+      target: develop
     volumes:
-    - '.:/go/src/go-api'
-    working_dir: '/go/src/go-api'
+      - '.:/go/todo'
+    working_dir: '/go/todo'
     command: ['/bin/sh', '-c', 'tail -f /dev/null']
     restart: always
     env_file: .env
-    environment:
-    - DB_USER=${DB_USER}
-    - DB_PASSWORD=${DB_PASSWORD}
-    - WEB_HTTP_PORT=${WEB_HTTP_PORT}
-    networks:
-    - proxy
-    - app
     ports:
-    - ${WEB_IP}:${WEB_HTTP_PORT}:8080
+      - ${WEB_IP}:${WEB_HTTP_PORT}:8080
     links:
-    - mysqldb
-  mysqldb:
-    container_name: acme_mysql
-    image: mysql:latest
+      - postgres
+  postgres:
+    container_name: acme_postgres
+    image: postgres:12
     volumes:
-    - './docker/mysql/initdb.sh:/docker-entrypoint-initdb.d/initdb.sh'
-    - './docker/mysql/content:/mysqldb/content'
-    restart: always
-    environment:
-    - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-    networks:
-    - app
+      - ./docker/postgres/postgresql.conf:/tmp/postgresql.conf
+      - ./docker/postgres/adding_self_signed_cert.sh:/docker-entrypoint-initdb.d/adding_self_signed_cert.sh
+    env_file: .env
     ports:
-    - 3306
-networks:
-  proxy:
-    driver: bridge
-  app:
-    driver: bridge
+      - 5432:5432
+    restart: always
+  migrate:
+    container_name: od_content_migrate
+    image: migrate/migrate
+    volumes:
+      - './:/migrations'
+    working_dir: '/migrations'

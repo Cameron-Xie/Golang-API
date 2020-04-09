@@ -2,29 +2,35 @@
 
 [![Build Status](https://travis-ci.org/Cameron-Xie/Golang-API.svg?branch=master)](https://travis-ci.org/Cameron-Xie/Golang-API)
 
-A Golang API (Starter).
+A TODO list REST API build with Golang.
 
 **Stacks:**
-* Language: Golang 1.10+
-* Containerisation: Docker CE
+* Golang 1.14
+* Postgres 12 (self signed cert with Docker)
 
-### Endpoints
+**pkgs/tools:**
+* go-chi/chi
+* jinzhu/gorm
+* golang-migrate/migrate
+* golangci/golangci-lint
 
-`GET /projects/`
+### Endpoints (CRUD)
 
-List all projects
+`GET /tasks`
+
+List all tasks
 
 **Example:**
 
 ```Golang
 curl --header "Content-Type: application/json" \
   --request GET \
-  http://localhost:8080/projects/
+  http://localhost:8080/tasks/
 ```
 
-`POST /projects/`
+`POST /tasks`
 
-Create new project
+Create new task
 
 **Example:**
 
@@ -32,12 +38,12 @@ Create new project
 curl --header "Content-Type: application/json" \
   --request POST \
   --data '{"name":"project name","description":"project description"}' \
-  http://localhost:8080/projects/
+  http://localhost:8080/tasks/
 ```
 
-`PATCH /projects/{id} `
+`PATCH /tasks/{id} `
 
-Update project
+Update a task
 
 **Example:**
 
@@ -45,19 +51,31 @@ Update project
 curl --header "Content-Type: application/json" \
   --request PATCH \
   --data '{"name":"first project","description":"first project description"}' \
-  http://localhost:8080/projects/1
+  http://localhost:8080/tasks/{uuid}
 ```
 
-`DELETE /projects/{id} `
+`GET /tasks/{id} `
 
-Delete project
+Get a task
+
+**Example:**
+
+```Golang
+curl --header "Content-Type: application/json" \
+  --request GET \
+  http://localhost:8080/tasks/{uuid}
+```
+
+`DELETE /tasks/{id} `
+
+Delete a task
 
 **Example:**
 
 ```Golang
 curl --header "Content-Type: application/json" \
   --request DELETE \
-  http://localhost:8080/projects/1
+  http://localhost:8080/tasks/{uuid}
 ```
 
 ### Setup Development / Test Environment
@@ -75,7 +93,15 @@ curl --header "Content-Type: application/json" \
 **With Docker**
 
 * Make sure you have installed all the packages (including tests), or you could run `make install` for this.
-* Run `make test` from app root directory. it will run all tests for you.
+* Run `make ci-test` from app root directory. it will run all tests for you.
+
+
+### Build final image
+
+* This project is using Multi-stage to build the final image, Run `make build` from app root directory.
+
+notice: in order to run the api in the final image, need to provide db connection config through env, 
+please check `/cmd/todo/api.go`
 
 ### Contributing
 Feedback is welcome.

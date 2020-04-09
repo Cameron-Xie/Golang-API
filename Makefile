@@ -1,14 +1,21 @@
-DockerGo=docker exec acme_go
+GoContainer=acme_go
+RunGo=docker exec -i ${GoContainer}
+buildVersion=${shell git rev-parse --short HEAD}
+outputDir=${PWD}/dist
+testOutputDir=${outputDir}/tests
+pkgDir=${PWD}/pkg/...
+internalDir=${PWD}/internal/...
 
-up:
-	@make create-dev-env
+# Development
+up: create-dev-env
 	@make start-containers
+	@${RunGo} sh -c 'make local-migration'
 
 down:
 	@make stop-containers
 
 start-containers:
-	@docker-compose up --build -d
+	@docker-compose up --build -d postgres golang
 
 stop-containers:
 	@docker-compose down -v
@@ -16,23 +23,47 @@ stop-containers:
 create-dev-env:
 	@test -e .env || cp .env.example .env
 
-install:
-	@${DockerGo} dep ensure
-
-migrate:
-	@${DockerGo} go run cmd/migrate/main.go
+local-migration:
+	@go run tools/migration/migrate.go
 
 run:
-	@${DockerGo} go run cmd/api/*.go
+	@${RunGo} sh -c 'make api-run'
 
-clean-test-cache:
-	@${DockerGo} go clean -testcache
 
-ci-install:
-	@make create-dev-env
-	@make install
+build:
+	@docker build -t todoapi:${buildVersion} -f ./docker/golang/Dockerfile .
 
-acceptance-test:
-	@${DockerGo} go test app/handler -v -cover
+# CI
+ci-test:
+	@${RunGo} sh -c 'make api-test'
 
-.PHONY: test
+# API
+api-test:
+	@make api-lint
+	@make api-unit
+
+api-lint:
+	@golangci-lint run ${pkgDir} ${internalDir} -v
+
+api-unit:
+	@mkdir -p ${testOutputDir}
+	@go clean -testcache
+	@go test \
+        -cover \
+        -coverprofile=cp.out \
+        -outputdir=${testOutputDir} \
+        -race \
+        -v \
+        -failfast \
+        ${pkgDir} \
+        ${internalDir}
+	@go tool cover -html=${testOutputDir}/cp.out -o ${testOutputDir}/cp.html
+
+api-run:
+	@go run cmd/todo/api.go
+
+api-build:
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+     	    -ldflags='-w -s -extldflags "-static"' \
+     	    -a \
+     	    -o ${outputDir}/cmd/todo/api ./cmd/todo/api.go
