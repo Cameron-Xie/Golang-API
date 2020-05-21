@@ -1,7 +1,7 @@
 package rest
 
 type Meta struct {
-	Total int
+	Total int `json:"total"`
 }
 
 type Link struct {
@@ -10,7 +10,7 @@ type Link struct {
 }
 
 type CollectionResponse struct {
-	Meta  Meta        `json:"Meta"`
+	Meta  Meta        `json:"meta"`
 	Links []Link      `json:"links"`
 	Items interface{} `json:"items"`
 }

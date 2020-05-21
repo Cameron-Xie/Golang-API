@@ -9,6 +9,7 @@ import (
 	restI "github.com/Cameron-Xie/Golang-API/internal/http/rest"
 	"github.com/Cameron-Xie/Golang-API/internal/storage/postgres"
 	"github.com/Cameron-Xie/Golang-API/pkg/http/rest"
+	"github.com/Cameron-Xie/Golang-API/pkg/logger"
 	"github.com/Cameron-Xie/Golang-API/pkg/services/readtask"
 	"github.com/Cameron-Xie/Golang-API/pkg/services/storetask"
 	"github.com/Cameron-Xie/Golang-API/pkg/services/updatetask"
@@ -27,6 +28,7 @@ const (
 	serverReadTimeout         = time.Second
 	serverWriteTimeout        = 5 * time.Second
 	pageLimit          int    = 100
+	version            int    = 1
 )
 
 func main() {
@@ -42,15 +44,20 @@ func main() {
 	}).Open()
 	errHandler(err)
 
-	r := rest.NewRouter(map[string]http.Handler{
-		"/tasks": rest.NewEndpoint(
-			storetask.New(storetask.NewValidator(), storage),
-			updatetask.New(updatetask.NewValidator(), storage),
-			readtask.New(storage),
-			restI.NewJSONRender(),
-			pageLimit,
-		),
-	})
+	r := rest.NewRouter(
+		version,
+		map[string]http.Handler{
+			"/tasks": rest.NewEndpoint(
+				storetask.New(storetask.NewValidator(), storage),
+				updatetask.New(updatetask.NewValidator(), storage),
+				readtask.New(storage),
+				restI.NewJSONRender(),
+				pageLimit,
+			),
+		},
+		rest.NewLogFormatter(logger.NewJSONLogger()),
+		rest.SetCORS([]string{"*"}),
+	)
 
 	log.Fatal(setServer(serverAddr, r).ListenAndServe())
 }

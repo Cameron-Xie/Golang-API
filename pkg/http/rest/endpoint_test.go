@@ -26,7 +26,7 @@ func TestNewEndpoint(t *testing.T) {
 		{
 			method: http.MethodGet,
 			resp: fmt.Sprintf(
-				`{"Meta":{"Total":2},"links":[{"href":"/?limit=10\u0026page=1","rel":"self"},{"href":"/?limit=10\u0026page=1","rel":"first"},{"href":"/?limit=10\u0026page=1","rel":"last"}],"items":[{"id":"%v","name":"read_svc_a"},{"id":"%v","name":"read_svc_b"}]}`,
+				`{"meta":{"total":2},"links":[{"href":"/?limit=10\u0026page=1","rel":"self"},{"href":"/?limit=10\u0026page=1","rel":"first"},{"href":"/?limit=10\u0026page=1","rel":"last"}],"items":[{"id":"%v","name":"read_svc_a"},{"id":"%v","name":"read_svc_b"}]}`,
 				id.String(),
 				id.String(),
 			),
@@ -37,7 +37,7 @@ func TestNewEndpoint(t *testing.T) {
 			method: http.MethodGet,
 			path:   "?page=1&limit=1",
 			resp: fmt.Sprintf(
-				`{"Meta":{"Total":2},"links":[{"href":"/?limit=1\u0026page=1","rel":"self"},{"href":"/?limit=1\u0026page=1","rel":"first"},{"href":"/?limit=1\u0026page=2","rel":"next"},{"href":"/?limit=1\u0026page=2","rel":"last"}],"items":[{"id":"%v","name":"read_svc_a"}]}`,
+				`{"meta":{"total":2},"links":[{"href":"/?limit=1\u0026page=1","rel":"self"},{"href":"/?limit=1\u0026page=1","rel":"first"},{"href":"/?limit=1\u0026page=2","rel":"next"},{"href":"/?limit=1\u0026page=2","rel":"last"}],"items":[{"id":"%v","name":"read_svc_a"}]}`,
 				id.String(),
 			),
 			code: 200,
@@ -47,7 +47,7 @@ func TestNewEndpoint(t *testing.T) {
 			method: http.MethodGet,
 			path:   "?page=2&limit=1",
 			resp: fmt.Sprintf(
-				`{"Meta":{"Total":2},"links":[{"href":"/?limit=1\u0026page=2","rel":"self"},{"href":"/?limit=1\u0026page=1","rel":"first"},{"href":"/?limit=1\u0026page=1","rel":"prev"},{"href":"/?limit=1\u0026page=2","rel":"last"}],"items":[{"id":"%v","name":"read_svc_b"}]}`,
+				`{"meta":{"total":2},"links":[{"href":"/?limit=1\u0026page=2","rel":"self"},{"href":"/?limit=1\u0026page=1","rel":"first"},{"href":"/?limit=1\u0026page=1","rel":"prev"},{"href":"/?limit=1\u0026page=2","rel":"last"}],"items":[{"id":"%v","name":"read_svc_b"}]}`,
 				id.String(),
 			),
 			code: 200,
