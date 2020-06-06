@@ -9,12 +9,21 @@ import (
 	"github.com/go-chi/cors"
 )
 
-func NewRouter(v int, endpoints map[string]http.Handler, l middleware.LogFormatter, c *cors.Cors) http.Handler {
+func NewRouter(
+	v int,
+	endpoints map[string]http.Handler,
+	l middleware.LogFormatter, c *cors.Cors,
+	compress *middleware.Compressor,
+) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RequestLogger(l))
 	r.Use(middleware.Recoverer)
+
+	if compress != nil {
+		r.Use(compress.Handler)
+	}
 
 	if c != nil {
 		r.Use(c.Handler)

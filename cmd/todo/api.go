@@ -13,6 +13,7 @@ import (
 	"github.com/Cameron-Xie/Golang-API/pkg/services/readtask"
 	"github.com/Cameron-Xie/Golang-API/pkg/services/storetask"
 	"github.com/Cameron-Xie/Golang-API/pkg/services/updatetask"
+	"github.com/go-chi/chi/middleware"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
@@ -29,6 +30,7 @@ const (
 	serverWriteTimeout        = 5 * time.Second
 	pageLimit          int    = 100
 	version            int    = 1
+	compressLevel      int    = 5
 )
 
 func main() {
@@ -57,6 +59,7 @@ func main() {
 		},
 		rest.NewLogFormatter(logger.NewJSONLogger()),
 		rest.SetCORS([]string{"*"}),
+		middleware.NewCompressor(compressLevel),
 	)
 
 	log.Fatal(setServer(serverAddr, r).ListenAndServe())
