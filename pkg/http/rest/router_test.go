@@ -84,7 +84,7 @@ func TestNewRouter(t *testing.T) {
 		"github.com/go-chi/chi/middleware.RequestID",
 		"github.com/go-chi/chi/middleware.RequestLogger.func1",
 		"github.com/go-chi/chi/middleware.Recoverer",
-		"github.com/go-chi/chi/middleware.Compress",
+		"github.com/go-chi/chi/middleware.(*Compressor).Handler-fm",
 	}
 
 	for i := 0; i < len(fs); i++ {

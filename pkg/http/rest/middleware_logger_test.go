@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
@@ -23,6 +24,7 @@ func TestLoggerEntryCreator_NewLogEntry(t *testing.T) {
 		method     string
 		remoteAddr string
 		uri        string
+		ignore     bool
 	}{
 		{
 			r: &http.Request{
@@ -32,6 +34,7 @@ func TestLoggerEntryCreator_NewLogEntry(t *testing.T) {
 				Host:       "8.8.8.8:8080",
 				RemoteAddr: "8.8.8.8",
 				RequestURI: "/health",
+				URL:        &url.URL{Path: "/health"},
 				TLS:        new(tls.ConnectionState),
 			},
 			scheme:     "https",
@@ -48,6 +51,7 @@ func TestLoggerEntryCreator_NewLogEntry(t *testing.T) {
 				Host:       "8.8.8.8:8080",
 				RemoteAddr: "8.8.8.8",
 				RequestURI: "/health?search=param",
+				URL:        &url.URL{Path: "/health"},
 				TLS:        nil,
 			},
 			scheme:     "http",
@@ -55,6 +59,19 @@ func TestLoggerEntryCreator_NewLogEntry(t *testing.T) {
 			method:     "GET",
 			remoteAddr: "8.8.8.8",
 			uri:        "http://8.8.8.8:8080/health?search=param",
+		},
+		{
+			r: &http.Request{
+				Method:     "GET",
+				Proto:      "HTTP/1.1",
+				Close:      false,
+				Host:       "8.8.8.8:8080",
+				RemoteAddr: "8.8.8.8",
+				RequestURI: "/ignore",
+				URL:        &url.URL{Path: "/ignore"},
+				TLS:        nil,
+			},
+			ignore: true,
 		},
 	}
 
@@ -64,8 +81,14 @@ func TestLoggerEntryCreator_NewLogEntry(t *testing.T) {
 		l.Formatter = &logrus.JSONFormatter{
 			DisableTimestamp: true,
 		}
-		c := &logEntryCreator{Logger: l}
+		c := &logEntryCreator{Logger: l, exclude: []string{"/ignore"}}
 		c.NewLogEntry(i.r)
+
+		if i.ignore {
+			a.Empty(l.Out)
+			continue
+		}
+
 		var o map[string]string
 		_ = json.Unmarshal([]byte(fmt.Sprint(l.Out)), &o)
 
@@ -84,14 +107,18 @@ func TestLoggerEntryCreator_NewLogEntry(t *testing.T) {
 func TestLoggerEntry_Write(t *testing.T) {
 	a := assert.New(t)
 	m := []struct {
-		s int
-		b int
-		e time.Duration
+		s       int
+		b       int
+		e       time.Duration
+		disable bool
 	}{
 		{
 			s: 200,
 			b: 1000000.0,
 			e: time.Duration(100),
+		},
+		{
+			disable: true,
 		},
 	}
 
@@ -102,7 +129,13 @@ func TestLoggerEntry_Write(t *testing.T) {
 			DisableTimestamp: true,
 		}
 		e := &logEntry{Logger: l}
+		e.disable = i.disable
 		e.Write(i.s, i.b, http.Header{}, i.e, nil)
+
+		if i.disable {
+			a.Empty(l.Out)
+			continue
+		}
 
 		o := &struct {
 			Status  int     `json:"respStatus"`
@@ -154,7 +187,8 @@ func TestLoggerEntry_Panic(t *testing.T) {
 func TestNewStdoutJsonLogger(t *testing.T) {
 	a := assert.New(t)
 	l := logger.NewJSONLogger()
-	c := NewLogFormatter(l).(*logEntryCreator)
+	c := NewLogFormatter(l, []string{"/"}).(*logEntryCreator)
 
 	a.Equal(l, c.Logger)
+	a.Equal([]string{"/"}, c.exclude)
 }

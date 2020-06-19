@@ -11,14 +11,20 @@ import (
 )
 
 type logEntryCreator struct {
-	Logger logger.Logger
+	Logger  logger.Logger
+	exclude []string
 }
 
 type logEntry struct {
-	Logger logger.Logger
+	Logger  logger.Logger
+	disable bool
 }
 
-func (e *logEntry) Write(status, bytes int, _ http.Header, elapsed time.Duration, _ interface{}) {
+func (e *logEntry) Write(status, bytes int, r http.Header, elapsed time.Duration, _ interface{}) {
+	if e.disable {
+		return
+	}
+
 	e.Logger = e.Logger.WithFields(logrus.Fields{
 		"respStatus":      status,
 		"respBytesLength": bytes,
@@ -38,6 +44,11 @@ func (e *logEntry) Panic(v interface{}, stack []byte) {
 func (c *logEntryCreator) NewLogEntry(r *http.Request) middleware.LogEntry {
 	e := &logEntry{Logger: c.Logger}
 
+	if isExists(r.URL.Path, c.exclude) {
+		e.disable = true
+		return e
+	}
+
 	scheme := "http"
 	if r.TLS != nil {
 		scheme = "https"
@@ -56,10 +67,19 @@ func (c *logEntryCreator) NewLogEntry(r *http.Request) middleware.LogEntry {
 	)
 
 	e.Logger.Infoln("start request")
-
 	return e
 }
 
-func NewLogFormatter(l logger.Logger) middleware.LogFormatter {
-	return &logEntryCreator{Logger: l}
+func NewLogFormatter(l logger.Logger, s []string) middleware.LogFormatter {
+	return &logEntryCreator{Logger: l, exclude: s}
+}
+
+func isExists(i string, s []string) bool {
+	for m := range s {
+		if s[m] == i {
+			return true
+		}
+	}
+
+	return false
 }

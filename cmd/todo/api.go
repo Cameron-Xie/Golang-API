@@ -57,7 +57,7 @@ func main() {
 				pageLimit,
 			),
 		},
-		rest.NewLogFormatter(logger.NewJSONLogger()),
+		rest.NewLogFormatter(logger.NewJSONLogger(), []string{"/"}),
 		rest.SetCORS([]string{"*"}),
 		middleware.NewCompressor(compressLevel),
 	)
